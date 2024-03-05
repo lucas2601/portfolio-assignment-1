@@ -9,6 +9,26 @@ output:
 
 ---
 
+
+```{r}
+library(pacman)
+
+
+pacman::p_load(tidyverse,
+              ggpubr,
+              ggplot2,
+              dplyr)
+
+
+
+
+
+```
+
+
+
+
+
 In the following exercises, you will be asked to generate and summarize simulations from statistical models. You should use what you have learned so far (i.e. for loop, if else statements, sampling from continuous and discrete distributions...) to generate observations and summarize your samples using (one of) the appropriate methods. You can find examples of how to do that in Ch. 5. Note that here we will only focus on generative models, several aspects for inference and hypothesis testing discussed in Ch. 4 are not directly needed in this context.
 
 In the first exercise, we will assume that the population of interest has a proportion of 0.51 men and 0.49 women. Your model should reflect that.
@@ -16,15 +36,15 @@ In the first exercise, we will assume that the population of interest has a prop
 Please submit your answers on GitHub Classroom.
 
 ---
-
+LUCAS
 1. _(5.2 from ROS)_ __Continuous probability simulation:__ The logarithms of weights (in pounds) of men in the United States are approximately normally distributed with mean 5.13 and standard deviation 0.17; women’s log weights are approximately normally distributed with mean 4.96 and standard deviation 0.20. Suppose 10 adults selected at random step on an elevator with a capacity of 1750 pounds. What is the probability that their total weight exceeds this limit?
 
 ---
-
+LUCAS
 2. _(5.6 from ROS)_ __Propagation of uncertainty:__ We use a highly idealized setting to illustrate the use of simulations in combining uncertainties. Suppose a company changes its technology for widget production, and a study estimates the cost savings at \$5 per unit, but with a standard error of \$4. Furthermore, a forecast estimates the size of the market (that is, the number of widgets that will be sold) at 40 000, with a standard error of 10 000. Assuming these two sources of uncertainty are independent, use simulation to estimate the total amount of money saved by the new product (that is, savings per unit, multiplied by size of the market).
 
 ---
-
+DANIEL
 3. _(5.10 from ROS)_ __Inference for a ratio of parameters:__ A (hypothetical) study compares the costs and effectiveness of two different medical treatments.
 
     - In the first part of the study, the difference in costs between treatments A and B is estimated at \$600 per patient, with a standard error of \$400, based on a regression with 50 degrees of freedom.
@@ -38,3 +58,99 @@ Please submit your answers on GitHub Classroom.
     (c) Repeat, changing the standard error on the difference in effectiveness to 2.0.
 
 ---
+
+```{r 5.10 A}
+# Defining variables
+cost_m = 600
+cost_se = 400
+cost_df = 50
+
+eff_m = 3.0
+eff_se = 1.0
+eff_df = 100
+
+# Simulating
+set.seed(2001)
+
+# Sampling from t distribution
+cost_sim <- rt(1000, cost_df)
+
+eff_sim <- rt(1000, eff_df)
+
+# Scaling generated values to our mean/standard error
+cost_sim <- cost_sim*cost_se+cost_m
+eff_sim <- eff_sim*eff_se+eff_m
+
+
+# Plotting
+scatter_df <- data.frame(x=cost_sim, y=eff_sim)
+
+scatter_plot <- ggplot(scatter_df)+
+  geom_point(aes(x=scatter_df$x,y=scatter_df$y), color = 'cyan4')+
+  labs(title = "Scatterplot of 1.000 simulation draws of cost & effectiveness difference", x="Cost Difference", y="Effectiveness Difference")
+
+scatter_plot
+```
+
+```{r 5.10 B}
+
+#Cost-effectiveness ratio using simulations from 5.10 a)
+
+CE_ratio <- cost_sim/eff_sim
+
+#Mean, Median & Median Absolute Deviation
+mean(CE_ratio)
+median(CE_ratio)
+mad(CE_ratio)
+
+# Finding the Intervals
+quantile(CE_ratio, c(0.025, 0.975)) #95% Interval
+quantile(CE_ratio, c(0.25, 0.75)) #50% Interval
+``` 
+
+The calculated mean, median & Median Absolute Deviation found were respectively 244.59, 191.93 and 150.61. Our 95% interval was approx. [-95.82;781.27], while our 50% interval was [98.94;300.35]. Based on these intervals, we determine the median, 191.93, as the most accurate descriptive variable, as the data is heavily influenced by outliers/extreme values, seen in the large 95% interval compared to the 50% interval. 
+
+---
+```{r 5.10 C}
+#Seeding for reproducibility
+set.seed(2001)
+
+
+#Setting new standard error value
+eff_se <- 2.0
+
+
+
+#Running simulations, same code as a)
+cost_sim <- rt(1000, cost_df)
+eff_sim <- rt(1000, eff_df)
+
+# Scaling generated values to our mean/standard error
+cost_sim <- cost_sim*cost_se+cost_m
+eff_sim <- eff_sim*eff_se+eff_m
+
+
+# Plotting
+scatter_df <- data.frame(x=cost_sim, y=eff_sim)
+
+scatter_plot <- ggplot(scatter_df)+
+  geom_point(aes(x=scatter_df$x,y=scatter_df$y), color = 'cyan4')+
+  labs(title = "Scatterplot of 1.000 simulation draws of cost & effectiveness difference", x="Cost Difference", y="Effectiveness Difference")
+
+scatter_plot
+
+#Doing B) on new simulations
+CE_ratio <- cost_sim/eff_sim
+
+mean(CE_ratio)
+median(CE_ratio)
+mad(CE_ratio)
+
+quantile(CE_ratio, c(0.025, 0.975)) #95% Interval
+quantile(CE_ratio, c(0.25, 0.75)) #50% Interval
+```
+
+With the larger standard error, our calculated intervals are significantly larger than before. Our 95% interval is now [-1821.74;2464.96] and our 50% interval is [70.63;311.90]. 
+
+---
+
